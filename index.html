@@ -1,99 +1,182 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-
-	<title>C is my scripting language</title>
-	
-	<style type="text/css">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>
+			C is my scripting language
+		</title>
+		<style type="text/css">
+/*<![CDATA[*/
 		body {
-  		margin-top: 1.0em;
-  		background-color: #EDF1F3;
+		margin-top: 1.0em;
+		background-color: #EDF1F3;
 		  font-family: "Helvetica,Arial,FreeSans";
-  		color: #000000;
-    }
-    #container {
-      margin: 0 auto;
-      width: 700px;
-    }
+		color: #000000;
+		}
+		#container {
+		margin: 0 auto;
+		width: 700px;
+		}
 		h1 { font-size: 3.8em; color: #120e0c; margin-bottom: 3px; }
 		h1 .small { font-size: 0.4em; }
 		h1 a { text-decoration: none }
 		h2 { font-size: 1.5em; color: #120e0c; }
-    h3 { text-align: center;  color: #120e0c; font-face: courier; }
-    a { color: #120e0c; }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
+		h3 { text-align: center;  color: #120e0c; font-face: courier; }
+		a { color: #120e0c; }
+		.description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
+		.download { float: right; }
 		pre { background: #000; color: #fff; padding: 15px;}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
+		hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
+		.footer { text-align:center; padding-top:30px; font-style: italic; }
 		ul { background-color: #f8FaFf; margin:5px; padding-top:10px; padding-bottom:10px;}
-	</style>
-	
-</head>
-
-<body>
-  <a href="http://github.com/jsz/"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
-
-  <div id="container">
-   <h1>I have terminal RMS</h1>
-    <div class="description">
-      My doctors diagnosed me with terminal RMS and a mild case of the EMACS syndrome.
-    </div>
-
-    <p><b>Or how I saved $10/month with open source ...</b></p>
-<p>By open-sourcing most of my private repos I was able to switch from the Medium plan to the Small plan and saved over (well actually exactly) $10/month. You can do it too!</p>
-	
-	<h2>(Some of) My Code By Category</h2>
-	<h3>Games</h3>
-	<ul>
-			<li><a href="https://github.com/jsz/Mega-Fill-Up">Mega Fill-Up</a>[Obj-C] - A balloon blowing game for iOS</li>
-			<li><a href="https://github.com/jsz/Fruitmunch">Fruit Munch</a>[C++] - Fruit Matching game for iOS</li>
-			<li><a href="https://github.com/jsz/marble_mayhem">Marble Mayhem</a>[C++] - Marble Matching game for iOS</li>
-			<li><a href="https://github.com/jsz/Project-Donnerfaust">Project Donnerfaust</a>[C++] - Unfinished Puyo Puyo Clone for iOS</li>
-			<li><a href="https://github.com/jsz/hellstorm">TexxnoPillz</a>[C++] - Dr Mario Clone for iOS</li>
-	</ul>
-			<h3>Game Dev Related</h3>
-	<ul>
-			<li><a href="https://github.com/jsz/hellstorm">Hellstorm Game Framework</a>[C++] - game framework for iOS (used in production)</li>
-			<li><a href="https://github.com/jsz/FrameworkV3">FrameworkV3</a>[C++] - game framework for iOS/OS X (used in production)</li>
-			<li><a href="https://github.com/jsz/c4">C4 Game Framework</a>[C99] - unfinished iOS game framework</li>			
-			</ul>
-			<h3>"Serious" OS X Apps</h3>
-			<ul>
-			<li><a href="https://github.com/jsz/Image-Drop">Image Drop</a>[Obj-C] - image uploading utility</li>
-			<li><a href="https://github.com/jsz/KingPIN">KingPIN</a>[Obj-C] - PIN entry helper for UMTS modems</li>
-			<li><a href="https://github.com/jsz/Quantum-Noise">Quantum Noise</a>[Obj-C] - One Click hoster download manager (like jdownloader)</li>
-			<li><a href="https://github.com/jsz/Search-It">Search It</a>[Obj-C] - Omni Present Search Bar</li>
-		</ul>
-
-			<h3>Oter Apps/tools/utilities</h3>
-			<ul>
-			<li><a href="https://github.com/jsz/Blogtard">Blogtard</a>[C99] - static blog generator</li>
-			<li><a href="https://github.com/jsz/mbpfand">Mbpfand</a>[Go] - fan speed control demon for linux (for mbp 5,5)</li>
-			<li><a href="https://github.com/jsz/nowplaying">Nowplaying</a>[Obj-C] - cli utility to print the currently played music by itunes</li>
-		</ul>
-
-			<h3>Web Apps</h3>
-			<ul>
-			<li><a href="https://github.com/jsz/htlr">Htlr.org</a>[Ruby] - image hosting rails app</li>
-			<li><a href="https://github.com/jsz/picvoting">Picvoting</a>[Ruby] - picture rating/voring rails app</li>
-			<li><a href="https://github.com/jsz/fettemama">Fettemama</a>[Go] - blog system with telnet frontend</li>
-		</ul>
-
-			<h3>Misc</h3>
-			<ul>
-			<li><a href="https://github.com/jsz/gosms">Gosms</a>[Go] - package to send SMS with Go</li>
-			<li><a href="https://github.com/jsz/PanTORa">PanTORa</a>[Shell] - listen to Pandora from outside the USA</li>
-			<li><a href="https://github.com/jsz/WoWPad">WoWPad</a>[Obj-C] - control World of Warcraft with your iPhone</li>
-		</ul>
-		<div class="footer">
-			<p>These are not all of my projects. Browse my github account for more half working stuff ;)</p>
-<p>(c) Leon Szpilewski / <a href="mailto:leon.szpilewski@googlemail.com">contact me</a></p>
+		/*]]>*/
+		</style>
+	</head>
+	<body>
+		<p>
+			<a href="http://github.com/jsz/"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+		</p>
+		<div id="container">
+			<h1>
+				I have terminal RMS
+			</h1>
+			<div class="description">
+				My doctors diagnosed me with terminal RMS and a mild case of the EMACS syndrome.
+			</div>
+			<div>
+				<p>
+					Hello, my name is Leon and this is one of my countless websites. Here you'll find links to some of my open source projects and other stuff.
+				</p>
+			</div>
+			<div>
+				<h2>
+					(Some of) My Code By Category
+				</h2>
+				<h3>
+					Games
+				</h3>
+				<ul>
+					<li>
+						<a href="https://github.com/jsz/Mega-Fill-Up">Mega Fill-Up</a>[Obj-C] - A balloon blowing game for iOS
+					</li>
+					<li>
+						<a href="https://github.com/jsz/Fruitmunch">Fruit Munch</a>[C++] - Fruit Matching game for iOS
+					</li>
+					<li>
+						<a href="https://github.com/jsz/marble_mayhem">Marble Mayhem</a>[C++] - Marble Matching game for iOS
+					</li>
+					<li>
+						<a href="https://github.com/jsz/Project-Donnerfaust">Project Donnerfaust</a>[C++] - Unfinished Puyo Puyo Clone for iOS
+					</li>
+					<li>
+						<a href="https://github.com/jsz/hellstorm">TexxnoPillz</a>[C++] - Dr Mario Clone for iOS
+					</li>
+				</ul>
+				<h3>
+					Game Dev Related
+				</h3>
+				<ul>
+					<li>
+						<a href="https://github.com/jsz/hellstorm">Hellstorm Game Framework</a>[C++] - game framework for iOS (used in production)
+					</li>
+					<li>
+						<a href="https://github.com/jsz/FrameworkV3">FrameworkV3</a>[C++] - game framework for iOS/OS X (used in production)
+					</li>
+					<li>
+						<a href="https://github.com/jsz/c4">C4 Game Framework</a>[C99] - unfinished iOS game framework
+					</li>
+				</ul>
+				<h3>
+					"Serious" OS X Apps
+				</h3>
+				<ul>
+					<li>
+						<a href="https://github.com/jsz/Image-Drop">Image Drop</a>[Obj-C] - image uploading utility
+					</li>
+					<li>
+						<a href="https://github.com/jsz/KingPIN">KingPIN</a>[Obj-C] - PIN entry helper for UMTS modems
+					</li>
+					<li>
+						<a href="https://github.com/jsz/Quantum-Noise">Quantum Noise</a>[Obj-C] - One Click hoster download manager (like jdownloader)
+					</li>
+					<li>
+						<a href="https://github.com/jsz/Search-It">Search It</a>[Obj-C] - Omni Present Search Bar
+					</li>
+				</ul>
+				<h3>
+					Oter Apps/tools/utilities
+				</h3>
+				<ul>
+					<li>
+						<a href="https://github.com/jsz/Blogtard">Blogtard</a>[C99] - static blog generator
+					</li>
+					<li>
+						<a href="https://github.com/jsz/mbpfand">Mbpfand</a>[Go] - fan speed control demon for linux (for mbp 5,5)
+					</li>
+					<li>
+						<a href="https://github.com/jsz/nowplaying">Nowplaying</a>[Obj-C] - cli utility to print the currently played music by itunes
+					</li>
+				</ul>
+				<h3>
+					Web Apps
+				</h3>
+				<ul>
+					<li>
+						<a href="https://github.com/jsz/htlr">Htlr.org</a>[Ruby] - image hosting rails app
+					</li>
+					<li>
+						<a href="https://github.com/jsz/picvoting">Picvoting</a>[Ruby] - picture rating/voring rails app
+					</li>
+					<li>
+						<a href="https://github.com/jsz/fettemama">Fettemama</a>[Go] - blog system with telnet frontend
+					</li>
+				</ul>
+				<h3>
+					Misc
+				</h3>
+				<ul>
+					<li>
+						<a href="https://github.com/jsz/gosms">Gosms</a>[Go] - package to send SMS with Go
+					</li>
+					<li>
+						<a href="https://github.com/jsz/PanTORa">PanTORa</a>[Shell] - listen to Pandora from outside the USA
+					</li>
+					<li>
+						<a href="https://github.com/jsz/WoWPad">WoWPad</a>[Obj-C] - control World of Warcraft with your iPhone
+					</li>
+				</ul>
+				<p>
+					You can find more of my code on <a href="https://github.com/jsz">github</a>.
+				</p>
+			</div>
+			<div style="margin-top: 2em;">
+				<h2>
+					Other stuff
+				</h2>
+				<h3>
+					Photos
+				</h3>Like every geek I got a DSLR and believe I am an artist ;)
+				<ul>
+					<li>
+						<a href="http://www.flickr.com/photos/fettemama/">Flickr Account #1</a>
+					</li>
+					<li>
+						<a href="http://www.flickr.com/photos/fluxforge/">Flickr Account #2</a>
+					</li>
+					<li>
+						<a href="http://mongoloideskind.deviantart.com/">Deviant Art Account</a>
+					</li>
+				</ul>
+				<h3>
+					Contact
+				</h3>Mail Me: <a href="mailto:leon.szpilewski@googlemail.com">...@...</a>
+			</div>
+			<div class="footer">
+				<p>
+					(c) Leon Szpilewski / <a href="mailto:leon.szpilewski@googlemail.com">contact me</a>
+				</p>
+			</div>
 		</div>
-
-  </div>
-</body>
+	</body>
 </html>
