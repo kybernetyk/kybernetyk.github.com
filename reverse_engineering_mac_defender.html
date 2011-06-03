@@ -1,0 +1,443 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>
+			Reverse Engineering Mac Defender ...
+		</title>
+		<style type="text/css">
+/*<![CDATA[*/
+		body {
+		margin-top: 1.0em;
+		background-color: #EDF1F3;
+			font-family: "Helvetica,Arial,FreeSans";
+		color: #000000;
+		}
+		#container {
+		margin: 0 auto;
+		width: 700px;
+		}
+		h1 { font-size: 3.8em; color: #120e0c; margin-bottom: 3px; }
+		h1 .small { font-size: 0.4em; }
+		h1 a { text-decoration: none }
+		h2 { font-size: 1.5em; color: #120e0c; }
+		h3 { text-align: left;  color: #120e0c; font-face: courier; }
+		a { color: #120e0c; }
+		.description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
+		.download { float: right; }
+		pre { background: #000; color: #fff; padding: 15px;}
+		hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
+		.footer { text-align:center; padding-top:30px; font-style: italic; }
+		ul { background-color: #f8FaFf; margin:5px; padding-top:10px; padding-bottom:10px;}
+		/*]]>*/
+		</style>
+		
+		<style type="text/css">
+		<!--
+		.lnr { color: #b0c4de; background-color: #132b4a; font-weight: bold; }
+		.Statement { color: #00ffff; font-weight: bold; }
+		.Number { color: #ffec8b; font-weight: bold; }
+		.Repeat { color: #00ffff; font-weight: bold; }
+		.Special { color: #ffa500; }
+		.StorageClass { color: #ffec8b; font-weight: bold; }
+		.Type { color: #98fb98; font-weight: bold; }
+		.String { color: #7fffd4; }
+		.Include { color: #b0c4de; font-weight: bold; }
+		pre { font-family: monospace; color: #fff8dc; background-color: #233b5a; }
+		
+		-->
+		</style>
+		
+	</head>
+	<body>
+		<p>
+			<a href="http://jsz.github.com/"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+		</p>
+		<div id="container">
+			<h1>
+				Reverse Engineering Mac Defender
+			</h1>
+			<div class="description">
+				OS X malware analysis for beginners ...
+			</div>
+			<div>
+				<h3>Introduction</h3>
+				<p>
+					This is an article about reverse engineering a part of the prominent "Mac Defender" malware - namely the part that downloads the main malware onto a user's Mac. As mentioned above this text is mainly written for people who have no experience with reverse engineering and/or reverse engineering Objective-C binaries. Thus you will only need basic understanding of x86 assembly, x86 calling conventions and a little Objective-C (reading the wikipedia article should be enough).
+					</p>
+					<p>
+						We will try to find out how the downloader retrieves the address where the main malware program is hosted. We will only use static analysis to achieve this goal so you won't need a Macintosh computer. Statical analysis means that we won't execute any malware code - we will try to decipher its secrets just by looking at the disassembly.</p>
+						
+						<p>
+							It's best if you read this text while you have IDA with the disassembly open. There will be listings in this article but a live IDA instance offers far more information than listings and screenshots can.</p>
+						
+				<p>
+					Please note that I am not a professional reverse engineer/malware analyst. I do this whenever I am bored. So some info in this article might lead to extreme facepalming among professionals. Also you don't want to follow this article on a mission critical computer. We won't execute any malware code but you never know. You could accidentally launch the app or someone using your computer might get curious and start it.
+				</p>
+				<p>
+					Just imagine I'm the old crazy guy with no fingers on his left telling you: "Hey dude, I found this crate of dynamite. Let's drink beer and blow up stuff!".
+				</p>
+								
+				<h3>Setting up your stuff.</h3>
+				<p>
+					Firs you will need a copy of IDA Pro. No worry, you don't need to buy it. We will be using the free demo version of IDA Pro 6.1. <a href="http://www.hex-rays.com/idapro/idadowndemo.htm">You can get it here</a>.
+				</p>
+				<p>
+					Then you will need a copy of the evil malware we want to reverse engineer. You can get it from here: <pre>http://...</pre>
+					Download and extract the archive but <b>DO NOT RUN THE APP</b>!
+				</p>
+
+				<h3>Blowing up your stuff.</h3>
+				<p>
+					If you somehow execute the avRunner app you don't need to be scared. The Mac Defender malware is pretty lame and getting rid of it is easy:
+<pre>
+$ kill -9 [mac defender pid]
+</pre>
+				Also the newest OS X update will remove the malware.
+				</p>
+
+				<h3>Getting to work.</h3>
+				<p>
+					Now it's time to get started with malware analysis. As mentioned earlier our aim is to find out how the downloader gets/generates/receives/finds the download URL of the main malware.
+				</p>
+				<p>
+					So let's start IDA and load the "avRunner" binary into it. Either drop the file onto IDA's "drop here" field or go the File->Load File way.
+ Select the i386 binary (the demo can't disassemble 64bit code) and click 'ok' in the dialog and wait a little for the analysis to complete.
+			</p>
+			<p>
+				After the analysis completes you will be shown the disassembly for the <code>main()</code> function:
+				</p><p>
+				<img src="img/0.png">
+				<br>
+				There's not much to be seen here because the application is a Objective-C Cocoa app. All <code>main()</code> does is to call <code>NSApplicationMain()</code>. And this is hidden somewhere deep in Apple's binary blob of libraries. So we need to find a good entry point to start our analysis.
+				</p>
+				<p>The first time an app gets control in Cocoa is after everything is loaded. Cocoa calls then the <code>-applicationDidFinishLaunching:</code> method of your application controller/delegate. So maybe there's something interesting. Scroll through the functions window and double click on <code>__InstallerAppDelegate_applicationDidFinishLaunching__</code>.</p>
+				
+				<p>
+					You will get this disassembly:
+				</p><p>
+				<img src="img/1.png">
+				<br>
+				Hmm, not much happening here either. Just some dummy stack frame manipulation and a return. So back to the functions window ...</p>
+				
+				<p>
+					Let's scroll through the functions list to find something that looks like a good entry point. If we don't find anything we'll have to fire up the debugger and follow the execution path. Which can be tedious. So we better find a candidate now :)
+				</p>
+				<p>
+					Ah, there. <code>__DownloadWindCtrl_startDownloadingURL__</code> looks pretty promising. Thank his Steveness for the extreme verbosity of Obj-C. A double click and bingo. Much stuff is going on here:
+					</p>
+					<p>
+						<a href="img/2.png" target=_blank><img src="img/2.png" width=50%></a>
+					</p>
+					<p>
+						Without reading any disassembly we can see that there's a suspicious format string that looks like a URL without the host part. I bet this is the place we've been looking for. So we zoom & enhance onto that section and take a deeper look.
+						</p>
+					<p>
+<pre>
+lea     eax, (cfstr_Http@MacSoft_p.isa - 2E3Fh)[ebx] ; "http://%@/mac/soft.php?affid=%@"
+mov     [esp+8], eax
+mov     eax, ds:(off_543C - 2E3Fh)[ebx]
+mov     [esp+4], eax
+mov     eax, ds:(off_5458 - 2E3Fh)[ebx]
+mov     [esp], eax
+call    _objc_msgSend
+</pre>
+
+						The first instruction loads the address of the format string into the eax register. The next instruction <code>mov [esp+8], eax</code> moves the address onto the stack. In combination with a call to <code>_objc_msgSend</code> a few lines later we can conclude that this format string is passed to a objective-c method.</p>
+					<p>
+						If we only knew which Obj-C method will be called. This is something that I find horribly tedious to find out by looking at disassembly. You have to inspect the first and 2nd argument to get an idea which method is invoked on which object. I'll describe later how that works in detail. For now let's just do what we and Dr. House can do best: guessing.
+						</p>
+					<p>
+						Usually (almost always) format strings are passed to functions that take the string as the 1st or 2nd argument and each following argument is "put into the place" of the corresponding format specifier in the format string. There are complex format strings with random argument access but they are not the norm and luckily we can see that our format string is pretty simple. It only takes 2 arguments.
+					</p>
+					<p>
+						As our format string is placed onto the stack so the following arguments (of which one is the hostname) must be too. A line above the <code>lea eax, ...</code> instruction we see that the contents of the <code>esi</code> register are placed onto the stack right next to our format string:
+						</p>
+<pre>
+mov     [esp+10h], eax
+mov     [esp+0Ch], esi
+lea     eax, (cfstr_Http@MacSoft_p.isa - 2E3Fh)[ebx] ; "http://%@/mac/soft.php?affid=%@"
+</pre>
+<p>
+					This must be the first argument after the format string and thus our hostname. Let's trace where <code>esi</code> is filled with the value ...
+				</p>
+				<p>
+					<img src="img/14.png">
+					</p>
+				<p>
+					A click on <code>esi</code> in the disassembly is helpful to see where the <code>esi</code> register is manipulated. We can see that some lines above the contents of the <code>eax</code> register are moved into <code>esi</code>. And a line above that we see a call to <code>__ZL14getConfigParami</code>. (That's how mangled c++ functions look like. IDA has recognized that and put a helpful comment on the right.) So the hostname must be somehow generated in the <code>getConfigParam()</code> function. (Return values are placed into the EAX register.)
+			</p>
+			<p>
+				At this point we could set a breakpoint on the <code>getConfigParam()</code> call, run the debugger and read out the <code>eax</code> contents and have our host name. But what if there's more to the hostname generation? What if the hostname is somehow procedurally generated? Maybe it is retrieved from the internet? To find this out we have to dig deeper into <code>getConfigParam()</code> ...
+			</p>
+			<h3>Digging deeper ...</h3>
+			<p>
+				So go to the functions window and find the <code>getConfigParam()</code> function and double click it. IDA will open the function's disassembly which is rather long:
+				<p>
+					<img src="img/3.png">
+				</p>
+			<p>
+				Let's zoom in and take a deeper look ...
+				</p>
+			<p>
+				<img src="img/6.png">
+			</p>
+			<p>
+				We see that the function takes one integer argument and that there's some branching done depending on the parameter. We better find out what value the integer has when our hostname is retrieved. So back to the previous <code>__DownloadWindCtrl_startDownloadingURL__</code> function. (Just press ESC.)
+			</p>
+			<p>
+				<img src="img/5.png">
+			</p>
+			<p>
+				A few lines above the first call to <code>getConfigParam()</code> we can see that there's some fiddling with the parameter passed to <code>__DownloadWindCtrl_startDownloadingURL__</code>. The value we pass to <code>getConfigParam()</code> depends on <code>arg_8</code>'s value. The marked instructions from the upper screen shot are equivalent to the following pseudo code:
+<pre>
+if (arg_8 == 0)
+  eax = 2
+else
+  eax = 1
+hostname = getConfigParam(eax)
+</pre>
+  <p>Now that we know which values the parameter can have we can go back to <code>getConfigParam</code> ...
+	</p>
+
+			<p>
+				<img src="img/6.png">
+			</p>
+			<p>
+				As we see the code compares <code>arg_0</code> (which is a name automatically generated by IDA for the first argument passed to this function) to 3 and jumps to <code>loc_2AB1</code> if it is below or equal 3. Which for our case (either 1 or 2) always is true. So we can continue at <code>loc_2AB1</code>:
+			</p>
+			<p>
+				<img src="img/7.png">
+			</p>
+			<p>
+				We can see that there are a few calls to obj-c methods followed by a call to <code>fopen()</code>. We can also see strings that look like fragments of filenames and a <code>"rb"</code> which in connection with <code>fopen()</code> suggests that a file should be opened for binary read access. If we take a look into the avRunner.app-bundle we can see that there's a file called <code>DownloadPict.png</code> in the <code>Resources</code> directory. Coincidence?
+			</p>
+			<p>
+				You might say: So what? The guy probably opens an image to display it in the downloader app. And maybe you're right. But this stinks. In Cocoa you don't need to fopen() and fread() image files if you want to display them. There are convenience methods in Obj-C that do all the work for you. So let's investigate this a little further ...
+			</p>
+			<h3>The curious case of _objc_msgSend() ...</h3>
+			<p>
+				To understand why a objective-c disassembly is full of <code>_objc_msgSend()</code> calls you need to know that Objective-C isn't really a C-dialect with its own compiler. (Well nowadays it is but the principle is the same.) Obj-C can be seen as a set of C-preprocessor directives which convert Obj-C code into C code which is then compiled by a C compiler. 
+			</p>
+			<p>
+				So from a Obj-C code fragment like
+<pre>[myobj doSomethingStupid: 1234 anotherParameter: 456];</pre>
+				the following C code is generated:
+<pre>objc_msgSend(myobj, "doSomethingStupid:anotherParameter:", 1234, 456);</pre>
+		</p>
+		<p>
+			Looking at the signature of <code>_objc_msgSend()</code> we can see that the first argument is a pointer to a Obj-C object instance and the 2nd argument is a C-string containing the invoked method name. 
+		</p>
+		<p>
+			<code>_objc_msgSend()</code> takes its first two arguments and looks in a table which method to call. It then calls the appropriate method. It's like a more dynamic C++ vtable and is the reason why Obj-C's duck typing OO works. 
+		</p>
+
+		<p>
+			One thing is notable: <code>_objc_msgSend()</code> performs tail calls. It doesn't mess with the stack nor the registers so it can jump directly into your called obj-c method without having to create a new stackframe. That's why we can deduce which arguments the called obj-c method expects by looking at the stack layout before the call to <code>_objc_msgSend()</code>. Return values are stored in the <code>eax</code> register.
+		</p>
+
+		<h3>Back to work ...</h3>
+		<p>
+			Let's make use of our newly acquired <code>_objc_msgSend()</code> knowledge. Let's see which methods are called to manipulate the "DownloadPict.png" filename ...
+		</p>
+		<p>
+			<img src="img/8.png">
+		</p>
+		<p>
+			Hover your mouse pointer over the <code>off_544C</code> and as soon as the tool tip pops up scroll down with your scrolling wheel. You should see <code>mainBundle</code> appearing. If it doesn't work you can alternatively double click on <code>off_544C</code> to see what's located at that address. (Press ESC to come back.)
+			</p>
+			<p>
+				As we can see data from this offset is moved onto the stack as the 2nd parameter to the following <code>_objc_msgSend</code> call. So this must be our method name. But on which object is this invoked? Well, just do the same 2 lines below with <code>off_545C</code>. <code>NSBundle</code> is the object the method is invoked up upon. NSBundle is a class in obj-c but as classes are objects too in that language it doesn't really matter. You could say it's the equivalent of calling a static class method in C++.
+				</p>
+				<p>
+					After a lookup in the Cocoa docs it's clear that <code>[NSBundle mainbundle]</code> returns a reference to a singleton representing the app's bundle (which can be used to retrieve the bundle's working directory, etc.). Then this reference is taken and some other methods are invoked upon it. Long story short (sorry, but this is just stupid work that I'd like to spare you): This code block gets the absolute file path to the <code>DownloadPict.png</code> file and <code>fopen()</code>s it for binary reading.
+					</p>
+					<p>
+						Let's skip to the next code block:
+					</p>
+				<p>
+				<img src="img/9.png">
+				</p>
+				<p>
+					Ah, this is simple nice C code. No Obj-C invocations. :)
+					We see a bunch of <code>fseek()</code>, <code>fread()</code> and some memory operations. Wait? Either the guy is parsing PNG by hand or this doesn't look like loading an image for displaying at all. Let's take a deeper look ...
+					</p>
+				<p>
+				A quick <pre>man fseek</pre> reveals which parameters this function expects and what it does. It sets the read/write location pointer in an opened file to a given offset. The offset is relative to the beginning or the end of the file. Or relative to the current location. This is controlled by the function's 3rd parameter. In this case our 3rd parameter has the value 2. After a little shuffling through the appropriate C header files we find out that 2 equals to <code>SEEK_END</code>. So the seek operation is relative from the file's end.
+				</p>
+				<p>
+					The offset is passed as the 2nd parameter. We can see here that our offset is <code>0xffffffff</code> which equals -1 as a signed 32bit integer. (<code>fseek()</code> takes signed int offsets.) The first parameter is the <code>FILE</code> pointer we got from <code>fopen()</code> in the previous code block.
+				</p>
+				<p>
+					So in plain english: We set the reading location to the second last byte in the file. That's pretty strange.
+				</p>
+				<p>
+					The following call to <code>fread()</code> reads that second last byte from the file into <code>var_19</code>.
+				</p>
+				<p>
+					After that there's a "strange" operation:
+<pre>
+movsx   eax, [ebp+var_19]
+not     eax
+mov     [esp+4], eax 
+</pre>
+<p>
+				This is called "One's Complement" and what it does is: It takes the value of <code>var_19</code> and inverts every bit of it. <code>0x00</code> becomes <code>0xff</code>. <code>0x01</code> becomes <code>0xfe</code>. <code>0x02</code> becomes <code>0xfd</code>. Etc. If you treat the data you perform this operation on as <code>signed</code> then it's the equivalent to negating a number and subtracting 1. (Or taking a negative number, adding 1 and changing the sign to positive.) So <code>0</code> becomes <code>-1</code>, <code>1</code> becomes <code>-2</code>, <code>2</code> becomes <code>-3</code>, etc.
+</p>
+<p>
+				If we look at the following <code>fseek()</code> call we'll find out that the 3rd parameter is <code>SEEK_CUR</code> this time. And as we are already at the end of the file there's not much place to go into the right direction. So we can conclude that <code>var_19</code> will be most likely a negative integer after it has been inverted and the read pointer will be adjusted by <code>var_19</code> bytes to the left.</p>
+				<p> [ If you wonder why we <code>fseek (original var_19+1)</code> bytes to the left: The previous <code>fread()</code> advanced our file location pointer by one to the right and we are at the last byte in the file now. So we have to <code>fseek</code> one byte more to the left to make up for that.]
+	</p>
+				<p>
+					After the <code>fseek()</code> call the original (not inverted) <code>var_19</code> value is taken and <code>var_19+1</code> bytes of dynamic memory are allocated by the call to <code>__Znam</code> (mangled C++ name for <code>operator new[]</code>). The location of that buffer is then saved in <code>esi</code>:
+				</p>
+				<pre>
+movsx   eax, [ebp+var_19]
+inc     eax
+mov     [esp], eax
+call    __Znam          ; operator new[](ulong)
+mov     esi, eax
+				</pre>
+<p>
+The next few instructions fill the buffer with <code>0x00</code>.
+</p>
+			<p>
+				Then <code>var_19</code> bytes are read from the file and stored in the recently allocated buffer:
+				</p>
+<pre>
+mov     [esp+0Ch], edi  	; FILE *
+mov     dword ptr [esp+8], 1	; size_t
+movsx   eax, [ebp+var_19]
+mov     [esp+4], eax    	; size_t
+mov     [esp], esi      	; void *
+call    _fread
+</pre>
+					<p>
+						The following <code>_objc_msgSend</code> call creates a <code>NSString</code> instance from the bytes read from the file and stores a reference to this string in <code>var_2C</code>. Then the buffer is is deleted[]. The test for buffer existence is obsolete because you can safely run delete on NULL. See - we discovered some bad c++ practice here through disassembly: ;)
+					</p>
+					<p>
+						<img src="img/15.png">
+					</p>
+					<p>The file is closed and a new buffer is created from our <code>NSString</code> by invoking <code>cStringFromString:</code> on it. This buffer's address is stored in <code>esi</code>. Steve knows why the first buffer was deleted:
+						</p>
+
+					<p>
+						<img src="img/10.png">
+						</p>
+					
+						<p>
+							Then the buffer's length is determined and stored into <code>eax</code> by <code>strlen()</code>. Followed by a loop which iterates over the buffer:
+						</p>
+						<p>
+							<img src="img/11.png">
+						</p>
+						<p>
+							The location of our buffer is stored in <code>esi</code>. The length is in <code>eax</code>. We compare <code>edx</code> with <code>eax</code> and if <code>edx</code> is lower we <code>xor</code> the byte at <code>buffer+edx</code> with <code>0x5a</code> and increase <code>edx</code> by one. Then we jump back to our edx/eax check.
+							</p>
+						<p>
+							If <code>eax</code> equals <code>edx</code> we break out of the loop and create a new <code>NSString</code> from the buffer by invoking <code>stringWithCString:</code>.
+						</p>
+						<p>
+							Then the resulting <code>NSString</code> is split into components by invoking <code>componentsSeperatedByString: @";"</code> on it. Component number <code>arg_0</code> is returned as our hostname.
+							</p>
+						<p>
+							Wait? What? That's the grand scheme? Read a bunch of "encrypted" bytes from the end of an image file and <code>xor</code> them with <code>0x5a</code>? Let's confirm that:
+						</p>
+						<p>
+							Grab a hex editor and open the <code>DownloadPict.png</code> file:
+						</p>
+						<p>
+							<img src="img/12.png">
+						</p>
+						<p>Looking at the 2nd last byte in the file we can read a value of <code>0x2b</code>. Let's move <code>0x2b</code> bytes to the left from that position and extract <code>0x2b</code> bytes:
+							</p>
+							<p>
+<pre>"\x17;9\x1d/;(>abltoothkjtkjhakcnthbtkkntkjkankjcc"</pre>
+							</p>
+							<p>
+								So let's "decrypt" those bytes without running the avRunner binary. I took here my favorite scripting language but you can take yours if you don't like my choice:
+							</p>
+						<p>
+<pre>
+<span class="Include">#include </span><span class="String">&lt;string.h&gt;</span>
+<span class="Include">#include </span><span class="String">&lt;stdio.h&gt;</span>
+
+<span class="Type">int</span> main (<span class="Type">int</span> argc, <span class="StorageClass">const</span> <span class="Type">char</span> **argv)
+{
+  <span class="Type">char</span> *str = strdup(<span class="String">&quot;</span><span class="Special">\x17</span><span class="String">;9</span><span class="Special">\x1d</span><span class="String">/;(&gt;abltoothkjtkjhakcnthbtkkntkjkankjcc&quot;</span>);
+  <span class="Type">char</span> *p = str;
+  <span class="Repeat">while</span> (*p) {
+    *p++ ^= <span class="Number">0x5a</span>;
+  }
+  printf(<span class="String">&quot;</span><span class="Special">%s</span><span class="Special">\n</span><span class="String">&quot;</span>, str);
+  <span class="Statement">return</span> <span class="Number">0</span>;
+}
+</pre>
+					</p>
+					<p>
+						Running this little piece of code gives us the following output:
+<pre>
+MacGuard;86.55.210.102;194.28.114.101;41099
+</pre>
+<p>
+	As we can see we get a human readable string which can be split into an array of components if divided by <code>";"</code>. <code>arg_0</code> is either 1 or 2 and the elements at index 1 and 2 are both valid hostnames. Tadaa.
+</p>
+					<p>
+					Let's fill in the components into our format string and we get this:
+<pre>
+http://86.55.210.102/mac/soft.php?affid=41099
+http://194.28.114.101/mac/soft.php?affid=41099
+</pre>
+The 2nd host seems to be rather slow. I guess it's a backup host in case the first one goes down. (Actually after further analysis it becomes clear that the 2nd host is used if the download from the first URL fails.)
+				</p>
+				<p>
+					If you open either of these URLs with your browser the <code>MacDefender.app</code> is downloaded. <b>Don't run it!</b></p>
+				<p>
+					So yes, that's all there is to know about this part of the malware. We could investigate further when the 2nd IP is chosen as a hostname, etc. Or we could take the main malware and dissect it. But that's up to you.</p>
+					<p>If you decide to play with the malware: Don't do it on a mission critical system. Preferably do it in a VM. But if something goes wrong: You can get rid off the MacDefender malware by killing it with <code>kill -9 [Mac Defender PID]</code>.
+</p>
+				<h3>Conclusion</h3>
+				<p>
+					As you can see malware analysis can be really easy. This is a good opportunity to get into OS X malware analysis. I don't think it will get any more easy than this and the coming Mac malware will probably get more complex and better guarded against reversing attempts.</p>
+				<p>
+					We used here only static analysis. If we would have fired up the debugger and had operated on the living object we could have saved us a lot of work. But we wouldn't have learned that much as by doing a static analysis.
+				</p>
+				
+
+				<h3>Contact</h3>
+				<p>
+					If you have found a bug/error/mistake in my post or have a comment please contact me at <a href="mailto:leon.szpilewski@gmail.com">leon.szpilewski@gmail.com</a> or <a href="http://twitter.com/fettemama">@fettemama</a>.</p>
+					<p>I also take donations in the form of IDA Pro licenses ;)
+				</p>
+			</div>
+		</div>
+	</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
