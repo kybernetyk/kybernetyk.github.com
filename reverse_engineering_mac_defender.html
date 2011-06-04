@@ -64,10 +64,10 @@
 			<div>
 				<h3>Introduction</h3>
 				<p>
-					This is an article about reverse engineering a part of the prominent "Mac Defender" malware - namely the part that downloads the main malware onto a user's Mac. As mentioned above this text is mainly written for people who have no experience with reverse engineering. Thus you will only need very basic understanding of x86 assembly, x86 calling conventions and a little Objective-C (reading the wikipedia article should be enough).
-					</p>
+					This is an article about reverse engineering a part of the prominent "Mac Defender" malware - namely the part that downloads the main malware onto a user's Mac. As mentioned in the title this text is mainly written for people who have no experience with reverse engineering. Thus you will only need very basic understanding of x86 assembly, x86 calling conventions and a little Objective-C (reading the wikipedia article should be enough).
+				</p>
 					<p>
-						We will try to find out how the downloader retrieves the address where the main malware program is hosted. We will only use static analysis to achieve this goal so you won't need a Macintosh computer. Statical analysis means that we won't execute any malware code - we will try to decipher its secrets just by looking at the disassembly.</p>
+						We will try to find out how the downloader retrieves the URL where the main malware program is hosted. We will only use static analysis to achieve this goal so you won't need a Macintosh computer. Statical analysis means that we won't execute any malware code - we will try to decipher its secrets just by looking at the disassembly.</p>
 												
 				<p>
 					Please note that I am not a professional reverse engineer/malware analyst. I do this whenever I am bored. So some info in this article might lead to extreme facepalming among professionals. Also you don't want to follow this article on a mission critical computer. We won't execute any malware code but you never know. You could accidentally launch the app or someone using your computer might get curious and start it.
@@ -404,14 +404,15 @@ The 2nd host seems to be rather slow. I guess it's a backup host in case the fir
 				<p>
 					As you can see malware analysis can be really easy (though most of the time it's more tricky than a simple one byte xor). This is a good opportunity to get into OS X malware analysis. I don't think it will get any more easy than this and the coming Mac malware will probably get more complex and better guarded against reversing attempts.</p>
 				<p>
-					We used here only static analysis. If we would have fired up the debugger and had operated on the living object we could have saved us a lot of work. But we wouldn't have learned that much as by doing a static analysis.
+					We used here only static analysis. If we would have fired up the debugger and had operated on the living object we could have saved us a lot of work/time. But we wouldn't have learned as much as by doing a static analysis.
 				</p>
 				
-				<h3>Further reading</h3>
+				<h3>Useful Links</h3>
 				<p>
 					<li><a href="http://www.archive.org/details/RECON2008">http://www.archive.org/details/RECON2008</a> - Video T06 "under the iHood". A good introduction to software reverse engineering on OS X.</li>
 					<li><a href="http://developer.apple.com/library/mac/#documentation/DeveloperTools/Conceptual/LowLevelABI/000-Introduction/introduction.html%23//apple_ref/doc/uid/TP40002437-SW1">OS X ABI</a> - detailed information about the OS X function calling conventions.</li>
 					<li><a href="http://www.friday.com/bbum/2009/12/18/objc_msgsend-part-1-the-road-map/">objc_msgSend() Tour</a> - a detailed analysis of objc_msgSend()</li>
+					<li><a href="http://www.codethecode.com/projects/class-dump/">class dump</a> - a very very helpful utility that extracts obj-c class metadata from binaries. </li>
 				</p>
 				<h3>Contact</h3>
 				<p>
